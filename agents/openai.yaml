@@ -1,0 +1,4 @@
+interface:
+  display_name: "ARTi 社媒实验室"
+  short_description: "生成 ARTi 的 X + 小红书内容，并用真实数据筛选模板"
+  default_prompt: "使用 $arti-social-lab 为 ARTi 生成一套官网同源视觉的 X + 小红书内容包，并标记两个平台各自的唯一实验变量、主指标和护栏指标。"
