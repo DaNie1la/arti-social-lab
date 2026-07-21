@@ -1,140 +1,110 @@
 ---
 name: arti-social-lab
-description: ARTi 专属 X + 小红书社媒内容与实验优化工作流。用于生成选题、钩子、封面或配图规范、卡片/线程结构、发布文案与实验记录；将同一内容核心分别适配为 X 和小红书版本；回填 1h/24h/72h 数据；在同平台同目标内比较内容、钩子、视觉和 CTA 模板；规划下一轮单变量测试。用户提到 ARTi 社媒、ARTi 小红书、ARTi X、官网配色、封面模板、内容模板、发布数据、A/B 测试或复盘模板效果时使用。
+description: ARTi 专属 X 与小红书内容生产和社媒实验判断系统。用于 create_content_package：按固定内容支柱、受众阶段、证据类型、CTA、平台与唯一假设变量生成可发布内容包；或 evaluate_experiment_result：按平台独立指标、证据强度、归因条件和硬决策规则复盘真实数据，监测 pillar、proof type、platform × CTA、实验纯度与模板复用价值。用户提到 ARTi 社媒、X、小红书、封面/配图、内容模板、实验数据、A/B 测试、复盘或 playbook 时使用。
 ---
 
-# ARTi 社媒实验室
+# ARTi 社媒实验系统
 
-把每条内容当成有编号、可复盘的实验。先形成一个可信的内容核心，再按平台改写。生成时保持品牌、证据与合规一致；复盘时只根据真实发布数据判断，不凭偏好宣布“爆款模板”。
+把内容生产和实验判断视为两个独立动作。技术标识保留 `arti-social-lab`；所有对外品牌文字统一写作 `ARTi`。
 
-技术标识保持 `arti-social-lab`，所有对外品牌文字统一写作 `ARTi`。
+## 先选择唯一动作
 
-## 选择模式
+### `create_content_package`
 
-- **生成**：从目标和素材生成完整的跨平台发布包。
-- **适配**：把已有内容改成 X 或小红书版本。
-- **视觉**：生成封面、配图或卡片方向，保持内容核心不变。
-- **回填**：把发布后的 1h、24h、72h 数据写入追踪表。
-- **复盘**：比较模板表现，输出保留、复测、停止。
-- **规划**：根据现有样本安排下一批单变量测试。
-- **拆解**：分析公开对标内容的结构，不复制其文案或视觉资产。
+用于选题、内容、封面/配图、平台改写与实验设计。只输出待验证假设和预设指标，不读取结果、不判断输赢、不提升 baseline 或 playbook 权重。
 
-## 开始前
+### `evaluate_experiment_result`
 
-1. 读取项目根目录 `launch_plan.md`；它是账号定位与发布边界的当前真源。
-2. 读取 [references/brand.md](references/brand.md)。
-3. 确认目标平台；读取 [references/platforms.md](references/platforms.md)。
-4. 生成内容时再读取 [references/templates.md](references/templates.md) 与 [references/compliance.md](references/compliance.md)。
-5. 记录或分析数据时再读取 [references/experiment.md](references/experiment.md)。
-6. 检查最近 3–5 条成品、钩子和 `posting_notes.md`，避免连续重复话题或临时改变多个变量。
-7. 如果追踪表存在，先读取它；没有数据时明确写“待验证”。
-8. 平台规格可能变化。涉及字符、比例、文件大小或披露规则时，优先核对平台官方帮助页和发布器。
+用于回填、计算、归因、判定和下一轮动作。只分析已经发布的真实数据，不顺手重写帖子、生成新封面或改写 CTA 文案。
 
-## 生成工作流
+用户要求完整闭环时，先完成并冻结 `create_content_package`，再把已发布结果作为新的输入执行 `evaluate_experiment_result`。不要用刚生成的内容模拟数据或自评胜负。
 
-### 1. 建立内容核心
+## 共享结构化字段
 
-先写一份与平台无关的 brief：
+每个 post 都必须记录以下字段，禁止用自由文本替代：
 
-- 平台、账号与内容支柱
-- 目标受众与认知阶段
-- 用户正在解决的问题
-- 唯一核心承诺
-- 希望用户采取的动作
-- 真实输入与证明方式
-- 内容目标、主指标与护栏指标
-- 唯一测试变量
+- `pillar`
+- `audience_stage`
+- `proof_type`
+- `cta_type`
+- `platform`
+- `hypothesis_variable`
 
-如果有多个选题，按 1–5 分评价：受众匹配、ARTi 相关性、证据强度、新鲜度、可测试性、制作成本。优先做证据充分且可归因的题，不只选“最像爆款”的题。
+读取 [references/schema.md](references/schema.md) 获取枚举、证据分级与字段约束。创建动作遵循 [references/content_package.schema.json](references/content_package.schema.json)；评估动作遵循 [references/experiment_result.schema.json](references/experiment_result.schema.json)。
 
-### 2. 写实验假设
+## 执行 `create_content_package`
 
-使用：
+1. 读取项目根目录存在的 `launch_plan.md`，再读取 [references/brand.md](references/brand.md)、[references/platforms.md](references/platforms.md)、[references/templates.md](references/templates.md) 和 [references/compliance.md](references/compliance.md)。
+2. 验证六个结构化字段。缺失时明确标为 `needs_input`；可安全推断时写出假设来源，不静默猜测。
+3. 只设一个 `hypothesis_variable`，并列出所有固定项。若同时改变两个以上变量，必须把 `variable_discipline` 标为 `mixed`，不得包装成受控实验。
+4. 建立平台无关的 `content_core`：用户问题、唯一承诺、事实、证据、限制、ARTi 关系、CTA 意图。
+5. 单独记录证据：填写 `evidence_flags`、`evidence_strength_score`、来源和 proof artifact。缺少可核验材料时保留 `[待补]`，不编造截图、数据、体验或评论。
+6. 为指定平台单独适配。X 与小红书可以共享内容核心，但必须有独立 `post_id`、CTA、主指标和护栏。
+7. 输出前检查合规、可访问性、品牌拼写和唯一变量。
 
-`因为【观察/数据】，如果把【变量】从 A 改为 B，预计【受众】的【主指标】会提高；同时【护栏指标】不应明显下降。`
+### 创建动作输出
 
-每条内容只设一个主目标，只改变一个计划变量。其余沿用同平台最近基线。
-
-### 3. 要求真实证据
-
-至少包含一项：真实产品截图、真实提示词、真实回答片段、可核验数据、真实用户问题或真实使用判断。缺少时标记 `[待补]`，不要伪造个人经历、结果或评论。
-
-### 4. 生成发布包
-
-- `brief.md`：完整 brief、主指标、护栏指标、唯一变量和停止条件。
-- `content_core.md`：平台无关的事实、观点、证据、限制和 CTA 意图。
-- `platform/<platform>.md`：该平台的钩子、正文/线程/卡片结构、CTA、标签和无障碍文本。
-- `visual_spec.md`：画面层级、视觉模板 ID、主题 ID、尺寸、可变与固定元素。
-- `experiment.json`：按 [references/experiment.md](references/experiment.md) 填写。
-
-只做一个平台时也保留 `content_core.md`，以后才能可靠复用。
-
-### 5. 做平台适配
-
-不要把同一段文案原样复制到所有平台：
-
-- 小红书强调封面承诺、卡片推进、收藏价值和评论问题。
-- X 强调首句、单一观点、可引用句、回复讨论；需要时拆成线程。
-具体输出和制作默认值见 [references/platforms.md](references/platforms.md)。
-
-### 6. 输出前质量门
-
-逐项检查：
-
-- 标题/首句承诺能由正文和证据兑现。
-- 第一屏只表达一个冲突或收益。
-- 每张卡、每条线程只完成一个信息任务。
-- ARTi 的产品关系已披露，优点和限制都可见。
-- 主指标与 CTA 对应；护栏指标能防止“虚假胜利”。
-- 没有同时改变钩子、视觉、结构和发布时间。
-- 投研内容保留必要边界声明。
-
-## 视觉工作流
-
-1. 固定内容核心、发布时间块、CTA、模板和视觉主题。
-2. 一次最多生成 3 个方向，明确推荐一个发布版本。
-3. 每个方向标注视觉模板 ID、钩子类型、预期主指标和风险。
-4. 手机缩略图下必须看清核心冲突；正文长信息移到内页或 caption。
-5. 默认使用官网深色主题 `V1`。只有视觉主题是唯一变量时，才切换 `V2` 或 `V3`。
-6. 直接出图时使用原创结构或图像生成能力，锁定官网同源色板。不要复制项目中带 `CC BY-NC-SA` 非商业限制的旧卡片模板。
-
-## 对标拆解
-
-1. 记录来源 URL、平台、发布日期和采集日期。
-2. 至少拆解：内容支柱、首句/封面钩子、证明方式、格式、CTA、互动类型。
-3. 只提取可迁移的模式，不复制原文、图形资产或独特版式。
-4. 观察样本少于 15 条时只写“线索”；达到 30 条后再做广义模式判断。
-5. 把未测试组合写入实验 backlog，不把外部高表现直接当成 ARTi 的结论。
-
-## 数据回填与复盘
-
-1. 使用 `assets/arti_social_experiment_tracker.xlsx` 作为主追踪表。
-2. 原始计数只填平台后台真实值；派生指标使用表内公式。
-3. 不跨平台比较绝对曝光或互动率；先按平台、账号、目标、内容线和时间块分组。
-4. 同一受控模板 1–2 条只写“单条信号”；3–5 条写“初步方向”；至少 6 条且跨两个时间块后才写“当前可复用基线”。
-5. 广义内容模式分析少于 15 条时置信度低，30 条以上才适合分析支柱 × 格式 × 钩子的组合。
-6. 同时改变两个以上变量、缺关键数据、付费投流、外部大号导流或发布时间异常的内容标为“不可归因”。
-7. 阅读率、收藏率上升但护栏指标下降时，不得直接宣布胜出。
-8. 分析 CSV：
-
-```powershell
-python scripts/score_experiments.py path\to\experiment_log.csv --min-sample 3
+```text
+content_package.json
+content_core.md
+platform/x.md 或 platform/xiaohongshu.md
+visual_spec.md（需要视觉时）
 ```
 
-脚本按平台、账号、目标和内容线分组，避免把不同渠道或目标混成一个排名。
+`content_package.json` 必须包含 `action: "create_content_package"` 和 `evaluation_status: "not_evaluated"`。禁止出现 `winner`、`baseline_promoted`、`playbook_status: "admitted"` 等结果字段。
 
-## 决策原则
+## 执行 `evaluate_experiment_result`
 
-- 主指标由目标决定，不能用点赞替代站外访问、产品问题或试用意向。
-- 优先看中位数与样本量；均值只作辅助。
-- 新账号前 9 条主要建立基线，不因单条极值大幅转向。
-- 不把相关性写成因果；主题、时段、账号阶段或流量来源变化必须注明。
-- 胜出模板进入 playbook，并记录适用平台、受众、目标、证据和失效条件。
+1. 读取 [references/schema.md](references/schema.md)、[references/metrics.md](references/metrics.md)、[references/decision-rules.md](references/decision-rules.md) 和 [references/experiment.md](references/experiment.md)。
+2. 只接受平台后台真实值。平台没有的字段留空，不用 `0` 代替缺失。
+3. 先检查证据强度和实验纯度，再计算指标。只有 `changed_variable_count = 1` 且归因条件全部通过的记录才进入受控胜率。
+4. X 与小红书分别使用自己的 success metrics；禁止计算跨平台综合分或用同一个“互动率”统一判胜。
+5. 先按 `platform × account × pillar × audience_stage × test_block` 找匹配 baseline，再判主指标和护栏。
+6. 应用硬决策规则，输出机器可读 `next_action_code`。证据不足时输出 `insufficient_data`；不可归因的单条爆发只进入 `watchlist`。
+7. 汇总五组监测：pillar 胜率、proof type 胜率、platform × CTA 转化、variable discipline、reuse value。
+8. 只有重复至少 3 次且稳定、可归因的模板才允许进入 ARTi playbook。
 
-## 默认触发示例
+### 评估动作输出
 
-- “用 ARTi 做下一篇小红书，测试收藏型封面。”
-- “把这篇 ARTi 实测改成一个 X 单帖和一条 5 帖线程。”
-- “同一个内容核心分别做小红书和 X 版本。”
-- “回填昨天 24 小时数据，按平台判断哪个模板更好。”
-- “按过去 30 条数据找内容支柱 × 钩子的高表现组合。”
+```text
+experiment_evaluation.json
+experiment_evaluation.md
+```
+
+输出必须包含范围、样本、平台指标、证据强度、归因状态、win status、硬规则命中、下一轮动作和置信度。不得在评估动作中提供新帖文案。
+
+可直接分析从追踪表导出的 CSV：
+
+```powershell
+python scripts/evaluate_experiment_result.py experiment_log.csv --json-output experiment_evaluation.json
+```
+
+旧命令 `scripts/score_experiments.py` 保留为兼容入口。
+
+## 平台胜利定义
+
+- 小红书优先看收藏率、完读/滑完率、私信意向与主页访问；按目标选择一个主指标，其余作为护栏或辅助。
+- X 优先看首屏后互动代理指标、有效回复率、主页点击率与链接意向率；没有 dwell/停留数据时必须明确写“代理指标”。
+- 不用点赞代替产品意向，不用曝光代替转化，不用跨平台绝对值判模板优劣。
+
+详细公式与 CTA 映射见 [references/metrics.md](references/metrics.md)。
+
+## 硬决策
+
+- 高曝光、低转化：保留 hook，重写 CTA。
+- 高收藏/留存、低互动：保留结构，改变 discussion angle。
+- 高互动、低产品相关性：降低该模板权重。
+- 单条爆发但不可归因：不提升 baseline，只进入 watchlist。
+
+阈值、优先级、playbook 准入和例外处理见 [references/decision-rules.md](references/decision-rules.md)。
+
+## 最终质量门
+
+- 动作边界没有混淆。
+- 六个结构化字段全部使用合法枚举。
+- `proof_type` 与 `evidence_strength_score` 分开记录。
+- 主指标属于目标平台，且与 CTA 对应。
+- 只有一个计划变量；否则明确标为 mixed / not attributable。
+- ARTi 的产品关系、有效之处与限制同时可见。
+- 投研内容保留必要边界声明。
+- X 图片含 alt text；小红书图片关键结论在正文中可读。
