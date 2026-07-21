@@ -1,0 +1,82 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://www.artifin.ai/schemas/content-package.json",
+  "title": "ARTi create_content_package output",
+  "type": "object",
+  "additionalProperties": true,
+  "required": [
+    "action",
+    "package_id",
+    "platform",
+    "pillar",
+    "audience_stage",
+    "proof_type",
+    "evidence_flags",
+    "evidence_strength_score",
+    "cta_type",
+    "hypothesis_variable",
+    "changed_variable_count",
+    "variable_discipline",
+    "primary_metric",
+    "guardrail_metric",
+    "evaluation_status"
+  ],
+  "properties": {
+    "action": { "const": "create_content_package" },
+    "package_id": { "type": "string", "minLength": 1 },
+    "post_id": { "type": "string" },
+    "platform": { "enum": ["xiaohongshu", "x"] },
+    "pillar": {
+      "enum": [
+        "ai_tool_benchmark",
+        "ai_workflow",
+        "research_education",
+        "arti_product_test",
+        "audience_cocreation"
+      ]
+    },
+    "audience_stage": {
+      "enum": ["problem_unaware", "problem_aware", "solution_aware", "product_aware"]
+    },
+    "proof_type": {
+      "enum": ["real_product_usage", "screenshot_proof", "benchmark_data", "subjective_opinion_only"]
+    },
+    "evidence_flags": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["real_product_usage", "screenshot_proof", "benchmark_data", "subjective_opinion_only"],
+      "properties": {
+        "real_product_usage": { "type": "boolean" },
+        "screenshot_proof": { "type": "boolean" },
+        "benchmark_data": { "type": "boolean" },
+        "subjective_opinion_only": { "type": "boolean" }
+      }
+    },
+    "evidence_strength_score": { "type": "integer", "minimum": 1, "maximum": 4 },
+    "proof_artifacts": { "type": "array", "items": { "type": "string" } },
+    "source_reference": { "type": "string" },
+    "cta_type": {
+      "enum": ["save", "discussion", "profile_visit", "dm", "link_click", "product_question", "trial_intent"]
+    },
+    "hypothesis_variable": {
+      "enum": ["hook", "content_structure", "visual", "cta", "format", "posting_time", "proof_type"]
+    },
+    "changed_variable_count": { "type": "integer", "minimum": 0 },
+    "variable_discipline": { "enum": ["pure", "mixed", "baseline", "unknown"] },
+    "hypothesis": { "type": "string" },
+    "fixed_variables": { "type": "array", "items": { "type": "string" } },
+    "primary_metric": { "type": "string", "minLength": 1 },
+    "guardrail_metric": { "type": "string", "minLength": 1 },
+    "evaluation_status": { "const": "not_evaluated" },
+    "content_core": { "type": "object" },
+    "platform_content": { "type": "object" },
+    "visual_spec": { "type": "object" }
+  },
+  "not": {
+    "anyOf": [
+      { "required": ["winner"] },
+      { "required": ["baseline_promoted"] },
+      { "properties": { "playbook_status": { "const": "admitted" } }, "required": ["playbook_status"] }
+    ]
+  }
+}

@@ -1,149 +1,103 @@
-# 实验与数据规则
+# ARTi 实验记录与复盘协议
+
+本文件只服务 `evaluate_experiment_result`。内容生成阶段只能预填计划字段，不得在这里模拟结果。
 
 ## 记录时间点
 
-- 1h：用于排查发布、追踪或异常问题，不提前判胜。
-- 24h：用于比较首轮触达、互动、保存和点击。
-- 72h：用于比较关注、有效评论、产品问题和试用意向。
+- 1h：排查发布、追踪或异常，不判胜。
+- 24h：记录触达、保存、互动、主页和链接动作。
+- 72h：补充有效回复、私信、产品问题和试用意向。
 
-只记录平台后台真实可见值。平台没有的字段留空，不用 0 代替。
+平台没有的指标留空，不用 0 代替缺失。
 
-## 通用原始字段
+## 必填身份字段
 
-- `impressions_*`：曝光/展示
-- `views_*`：阅读、打开或视频播放；不同平台定义不同，只能在同平台比较
-- `likes_*`
-- `comments_*`
-- `reposts_*`：转发/分享
-- `saves_*`：收藏/书签
-- `clicks_*`：站外链接或指定链接点击
-- `profile_visits_*`
-- `new_follows_*`
-- `qualified_comments_*`
-- `product_questions_*`
-- `trial_intents_*`
+- `post_id`
+- `publish_date`
+- `platform`
+- `account`
+- `pillar`
+- `audience_stage`
+- `proof_type`
+- `evidence_strength_score`
+- `cta_type`
+- `hypothesis_variable`
+- `changed_variable_count`
+- `template_id`
+- `test_block`
+- `status`
 
-## 派生指标
+枚举见 [schema.md](schema.md)。
 
-- 打开/阅读率 = views / impressions
-- 互动率 = (likes + comments + reposts + saves) / impressions
-- 保存率 = saves / views；X 无可靠 views 时用 impressions，并在指标名注明
-- 精准互动率 = (comments + reposts) / impressions
-- 点击率 = clicks / impressions
-- 主页访问率 = profile_visits / impressions
-- 关注转化率 = new_follows / profile_visits
-- 产品意向率 = (product_questions + trial_intents) / profile_visits；无主页访问数据时退回 views 或 impressions，并注明
+## 原始计数字段
 
-分母为 0 或缺失时留空。
+按平台可见口径填写：
 
-## 目标与主指标
+- `impressions_24h`
+- `views_24h`
+- `saves_24h`
+- `completed_views_24h`
+- `likes_24h`
+- `comments_24h`
+- `replies_24h`
+- `qualified_replies_72h`
+- `reposts_24h`
+- `bookmarks_24h`
+- `engagements_24h`
+- `profile_visits_24h`
+- `profile_clicks_24h`
+- `link_intents_24h`
+- `dm_intents_72h`
+- `product_questions_72h`
+- `trial_intents_72h`
 
-| 目标 | 默认主指标 | 护栏指标 |
-| --- | --- | --- |
-| 认知/曝光 | 同时间块曝光；小红书可加阅读率 | 精准互动率 |
-| 收藏/留存 | 保存率 | 负面反馈、互动率 |
-| 精准互动 | 精准互动率、有效评论 | 主页访问率 |
-| 站外访问 | 点击率 | 互动率、负面反馈 |
-| 产品意向 | 产品意向率、产品问题/试用意向 | 关系披露与负面反馈 |
+公式与平台限制见 [metrics.md](metrics.md)。
 
-如果 `primary_metric` 已显式填写，复盘优先使用该字段。
+## Baseline 与 band
 
-## 必填字段
+记录 `primary_metric`、`baseline_primary_value`、`guardrail_metric` 和 `baseline_guardrail_value`。如要触发硬规则，可再提供：
 
-```json
-{
-  "post_id": "X-P005",
-  "publish_date": "YYYY-MM-DD",
-  "platform": "X",
-  "account": "",
-  "format": "single_post|thread|carousel|video",
-  "content_line": "主线|桥接|副线",
-  "content_pillar": "",
-  "awareness_stage": "问题未知|问题已知|方案已知|产品已知",
-  "topic": "",
-  "objective": "认知|收藏/留存|精准互动|站外访问|产品意向",
-  "desired_action": "",
-  "proof_type": "截图|数据|真实输入|用户问题|使用判断",
-  "source_reference": "",
-  "content_template": "S6",
-  "visual_template": "C5",
-  "hook_template": "H5",
-  "cta_template": "A5",
-  "visual_theme": "V1",
-  "test_block": "X-B1",
-  "tested_variable": "钩子模板",
-  "baseline": "H6",
-  "variant": "H5",
-  "hypothesis": "",
-  "primary_metric": "精准互动率",
-  "guardrail_metric": "主页访问率",
-  "target_sample": 3,
-  "status": "计划中|已发布|待补数据|完整|异常|不可归因",
-  "notes": ""
-}
-```
+- `baseline_reach_value`
+- `baseline_retention_value`
+- `baseline_interaction_value`
+- `baseline_conversion_value`
+- `baseline_product_relevance_value`
 
-## 可归因条件
+评估器将根据平台指标计算 `reach_band`、`retention_band`、`interaction_band`、`conversion_band` 和 `product_relevance_band`。没有匹配 baseline 时为 `unknown`。
 
-以下条件同时满足才进入模板比较：
+## 归因与异常
 
-1. 只改变一个计划变量。
-2. 主指标对应时间点的数据完整。
-3. 平台、账号、目标、内容线和比较时间块一致。
-4. 发布时间在常用时段 ±60 分钟内，或已配对/注明异常。
-5. 没有付费投流、外部大号导流、删除重发或平台处罚。
-6. 护栏指标已检查。
+以下任一为真时，记录不可进入受控 win rate：
 
-## 样本判断
+- 同时改了两个以上变量。
+- 主指标或 baseline 缺失。
+- 付费投流、外部大号导流、删除重发、平台处罚或明显时段异常。
+- 比较组的平台、账号、pillar、audience stage 或 test block 不匹配。
 
-受控模板测试：
+不可归因内容仍可进入 watchlist，但不得提升 baseline 或 playbook。
 
-| 可比样本数 | 允许措辞 |
+## 样本措辞
+
+| 可归因样本 | 允许措辞 |
 | ---: | --- |
-| 1–2 | 单条信号，不能下结论 |
+| 1–2 | 单条信号 |
 | 3–5 | 初步方向，需要复测 |
-| 6+ 且跨两个时间块 | 当前可复用基线 |
+| 6+ 且跨两个时间块 | 当前可复用 baseline |
 
-广义模式分析：
+模板进入 ARTi playbook 使用更严格的 3+ 稳定复用规则，见 [decision-rules.md](decision-rules.md)。
 
-| 样本数 | 置信度 |
-| ---: | --- |
-| <15 | 低，只列线索 |
-| 15–29 | 中，适合提出实验 |
-| 30+ | 较高，可分析支柱 × 格式 × 钩子 |
+## 固定复盘顺序
 
-优先看中位数；均值只作辅助。不要跨目标比较综合分。
+1. 检查数据完整性。
+2. 标记证据强度，但不把证据分数加进胜率。
+3. 检查 variable discipline 和 attribution。
+4. 按平台计算 success metrics。
+5. 比较主指标与护栏的匹配 baseline。
+6. 应用 hard decision rules。
+7. 汇总 pillar、proof type、platform × CTA、实验纯度和 reuse value。
 
-## 停止条件
+使用追踪表 `assets/arti_social_experiment_tracker.xlsx`，或运行：
 
-- 技术或追踪异常：暂停并修复，不判输赢。
-- 护栏指标明显恶化：停止变体并记录原因。
-- 未达目标样本：结果保持“进行中”，不因中途领先提前停止。
-- 结果无差异：保留较易制作版本，或下一轮测试更大胆差异。
-
-## 复盘输出
-
-```markdown
-### 范围
-- 平台 / 账号 / 目标 / 内容线：
-- 时间块：
-- 可比样本：
-- 分析置信度：
-
-### 结论
-- 当前信号：
-- 主指标中位数差异：
-- 护栏变化：
-- 是否可归因：
-
-### 决策
-- 保留：
-- 复测：
-- 停止：
-
-### 下一轮
-- 唯一变量：
-- 基线：
-- 保持不变：
-- 目标样本与停止条件：
+```powershell
+python scripts/evaluate_experiment_result.py experiment_log.csv --json-output experiment_evaluation.json
 ```
