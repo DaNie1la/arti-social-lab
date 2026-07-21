@@ -1,0 +1,70 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://www.artifin.ai/schemas/experiment-result.json",
+  "title": "ARTi evaluate_experiment_result input and output",
+  "type": "object",
+  "additionalProperties": true,
+  "required": [
+    "action",
+    "post_id",
+    "platform",
+    "pillar",
+    "audience_stage",
+    "proof_type",
+    "cta_type",
+    "hypothesis_variable",
+    "changed_variable_count",
+    "status",
+    "primary_metric"
+  ],
+  "properties": {
+    "action": { "const": "evaluate_experiment_result" },
+    "post_id": { "type": "string", "minLength": 1 },
+    "platform": { "enum": ["xiaohongshu", "x"] },
+    "pillar": {
+      "enum": [
+        "ai_tool_benchmark",
+        "ai_workflow",
+        "research_education",
+        "arti_product_test",
+        "audience_cocreation"
+      ]
+    },
+    "audience_stage": {
+      "enum": ["problem_unaware", "problem_aware", "solution_aware", "product_aware"]
+    },
+    "proof_type": {
+      "enum": ["real_product_usage", "screenshot_proof", "benchmark_data", "subjective_opinion_only"]
+    },
+    "evidence_strength_score": { "type": "integer", "minimum": 1, "maximum": 4 },
+    "cta_type": {
+      "enum": ["save", "discussion", "profile_visit", "dm", "link_click", "product_question", "trial_intent"]
+    },
+    "hypothesis_variable": {
+      "enum": ["hook", "content_structure", "visual", "cta", "format", "posting_time", "proof_type"]
+    },
+    "changed_variable_count": { "type": "integer", "minimum": 0 },
+    "variable_discipline": { "enum": ["pure", "mixed", "baseline", "unknown"] },
+    "status": { "enum": ["planned", "published", "pending_data", "complete", "anomaly", "not_attributable"] },
+    "primary_metric": { "type": "string", "minLength": 1 },
+    "guardrail_metric": { "type": "string" },
+    "baseline_primary_value": { "type": ["number", "null"] },
+    "baseline_guardrail_value": { "type": ["number", "null"] },
+    "attribution_status": { "enum": ["attributable", "not_attributable", "pending"] },
+    "win_status": { "enum": ["win", "loss", "inconclusive", "guardrail_fail", "insufficient_data", "not_evaluated", "watchlist"] },
+    "next_action_code": {
+      "enum": [
+        "FIX_TRACKING",
+        "STOP_VARIANT_GUARDRAIL",
+        "WATCHLIST_ONLY",
+        "KEEP_HOOK_REWRITE_CTA",
+        "KEEP_STRUCTURE_CHANGE_DISCUSSION_ANGLE",
+        "DOWNWEIGHT_TEMPLATE",
+        "RETEST_WINNER",
+        "RETURN_TO_BASELINE",
+        "COLLECT_MORE_DATA"
+      ]
+    },
+    "playbook_status": { "enum": ["not_eligible", "watchlist", "playbook_candidate", "admitted"] }
+  }
+}
